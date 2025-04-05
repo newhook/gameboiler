@@ -244,10 +244,6 @@ export class Cube implements GameObject {
   }
 
   update(delta: number): void {
-    if (!this.exploding && this.mesh.position.y < -10) {
-      this.explode();
-    }
-
     if (!this.exploding) {
       if (this.mesh.position.y < -10) {
         this.explode();
