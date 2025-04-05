@@ -1,10 +1,10 @@
-import * as THREE from "three";
-import RAPIER from "@dimforge/rapier3d";
-import { IGameState } from "./gameStates";
-import { GameStateManager } from "./gameStateManager";
-import { GameConfig, defaultConfig } from "./config";
-import { PhysicsWorld, createObstacleBody } from "./physics";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import * as THREE from 'three';
+import RAPIER from '@dimforge/rapier3d';
+import { IGameState } from './gameStates';
+import { GameStateManager } from './gameStateManager';
+import { GameConfig, defaultConfig } from './config';
+import { PhysicsWorld, createObstacleBody } from './physics';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 export class PlayState implements IGameState {
   public gameStateManager: GameStateManager;
@@ -30,7 +30,7 @@ export class PlayState implements IGameState {
     // Create scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x87ceeb); // Light sky blue
-    this.physicsCounterElement = document.getElementById("physics-counter");
+    this.physicsCounterElement = document.getElementById('physics-counter');
 
     // Setup game state with configuration
     this.config = {
@@ -99,42 +99,42 @@ export class PlayState implements IGameState {
 
     // Create keyboard event listener for wireframe toggle
     this.keydownListener = (event: KeyboardEvent) => {
-      if (event.key === "f" || event.key === "F") {
+      if (event.key === 'f' || event.key === 'F') {
         this.isWireframeMode = !this.isWireframeMode;
         this.toggleWireframeMode(this.scene, this.isWireframeMode);
       }
     };
 
     // Add camera mode indicator to the UI
-    const cameraMode = document.createElement("div");
-    cameraMode.id = "camera-mode";
-    cameraMode.textContent = "CAMERA: TANK MODE";
-    cameraMode.style.position = "absolute";
-    cameraMode.style.top = "60px";
-    cameraMode.style.left = "10px";
-    cameraMode.style.color = "#00ff00";
-    cameraMode.style.fontFamily = "monospace";
-    cameraMode.style.fontSize = "20px";
-    cameraMode.style.opacity = "0";
-    cameraMode.style.transition = "opacity 0.5s ease-in-out";
+    const cameraMode = document.createElement('div');
+    cameraMode.id = 'camera-mode';
+    cameraMode.textContent = 'CAMERA: TANK MODE';
+    cameraMode.style.position = 'absolute';
+    cameraMode.style.top = '60px';
+    cameraMode.style.left = '10px';
+    cameraMode.style.color = '#00ff00';
+    cameraMode.style.fontFamily = 'monospace';
+    cameraMode.style.fontSize = '20px';
+    cameraMode.style.opacity = '0';
+    cameraMode.style.transition = 'opacity 0.5s ease-in-out';
     document.body.appendChild(cameraMode);
 
     // Add coordinate display
-    const coordDisplay = document.createElement("div");
-    coordDisplay.id = "coordinates";
-    coordDisplay.style.position = "absolute";
-    coordDisplay.style.top = "100px";
-    coordDisplay.style.left = "10px";
-    coordDisplay.style.color = "#00ff00";
-    coordDisplay.style.fontFamily = "monospace";
-    coordDisplay.style.fontSize = "16px";
-    coordDisplay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-    coordDisplay.style.padding = "5px";
-    coordDisplay.style.border = "1px solid #00ff00";
+    const coordDisplay = document.createElement('div');
+    coordDisplay.id = 'coordinates';
+    coordDisplay.style.position = 'absolute';
+    coordDisplay.style.top = '100px';
+    coordDisplay.style.left = '10px';
+    coordDisplay.style.color = '#00ff00';
+    coordDisplay.style.fontFamily = 'monospace';
+    coordDisplay.style.fontSize = '16px';
+    coordDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    coordDisplay.style.padding = '5px';
+    coordDisplay.style.border = '1px solid #00ff00';
     document.body.appendChild(coordDisplay);
 
     // Handle window resize
-    window.addEventListener("resize", () => {
+    window.addEventListener('resize', () => {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
     });
@@ -157,7 +157,7 @@ export class PlayState implements IGameState {
 
     // Create a grid texture for the ground
     const gridTexture = new THREE.TextureLoader().load(
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF8WlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczpxPSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNi4wLWMwMDIgNzkuMTY0NDg4LCAyMDIwLzA3LzEwLTIyOjA2OjUzICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczpxbXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczpxbXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgKFdpbmRvd3MpIiB4bXA6Q3JlYXRlRGF0ZT0iMjAyMC0wOC0xMFQxMjo1MjozNyswMjowMCIgeG1wOk1vZGlmeURhdGU9IjIwMjAtMDgtMTBUMTI6NTU6NDMrMDI6MDAiIHhtcDpNZXRhZGF0YURhdGU9IjIwMjAtMDgtMTBUMTI6NTU6NDMrMDI6MDAiIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3Nob3A6Q29sb3JNb2RlPSIzIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjQyZjYxZjc1LTcwZWUtNGE0YS04ZTcwLWYwMzEyODBjZTRhOCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpjNzNmNjkyYi00MDdlLTQzOTAtODBlNC1jNzVlYmU0ZTRmZDYiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmM3M2Y2OTJiLTQwN2UtNDM5MC04MGU0LWM3NWViZTRlNGZkNiIgc3RFdnQ6d2hlbj0iMjAyMC0wOC0xMFQxMjo1MjozNyswMjowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIChXaW5kb3dzKSIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6NDJmNjFmNzUtNzBlZS00YTRhLThlNzAtZjAzMTI4MGNlNGE4IiBzdEV2dDp3aGVuPSIyMDIwLTA4LTEwVDEyOjU1OjQzKzAyOjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgKFdpbmRvd3MpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDwvcmRmOlNlcT4gPC94bXBNTTpIaXN0b3J5PiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Ps3gIaEAAAFRSURBVHja7dpBDoMgEAVQ6L3qCt3D/U/gHu5dV5jYGI3owEyVCfMXJhiG8QvVaPR8nJcB8I+AAiiAAvgdIAfNGxF9XtNvXdYp/fQkACnFVNYlvX7TJU3Hf3QBZPt0gGTzwQBq9PQTwOzRmwDMHr1qAFUIFkAVggVQhWABXCEYAL2IzAJQSsoNMDN+HMAMAgZQQlgA7SCVgHtCqAFmEVgAsSOsAlQhWgBViB5AEaIHQIIo2YSQIEo2ISSIr06CCKJkE8KFCAsQQoQFCCHCAnQR2QCeEKEALUQ4QA0RDlBDhAPkjehlKhzA+kj9tAs8IGrWRx4QTYMYGsQiPe1qvl9tAD6ivgJrfV+H+P41Ig6dg/MQMeicnIOIQefkHEQMOifnIGLQOTkHkUZnA+IqXYN4ZLIHcZWWgXhk62A/AAAAAAAAAAAAzMcNlrWuLcW3oLkAAAAASUVORK5CYII="
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF8WlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczpxPSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNi4wLWMwMDIgNzkuMTY0NDg4LCAyMDIwLzA3LzEwLTIyOjA2OjUzICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczpxbXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczpxbXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgKFdpbmRvd3MpIiB4bXA6Q3JlYXRlRGF0ZT0iMjAyMC0wOC0xMFQxMjo1MjozNyswMjowMCIgeG1wOk1vZGlmeURhdGU9IjIwMjAtMDgtMTBUMTI6NTU6NDMrMDI6MDAiIHhtcDpNZXRhZGF0YURhdGU9IjIwMjAtMDgtMTBUMTI6NTU6NDMrMDI6MDAiIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3Nob3A6Q29sb3JNb2RlPSIzIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjQyZjYxZjc1LTcwZWUtNGE0YS04ZTcwLWYwMzEyODBjZTRhOCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpjNzNmNjkyYi00MDdlLTQzOTAtODBlNC1jNzVlYmU0ZTRmZDYiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmM3M2Y2OTJiLTQwN2UtNDM5MC04MGU0LWM3NWViZTRlNGZkNiIgc3RFdnQ6d2hlbj0iMjAyMC0wOC0xMFQxMjo1MjozNyswMjowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIChXaW5kb3dzKSIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6NDJmNjFmNzUtNzBlZS00YTRhLThlNzAtZjAzMTI4MGNlNGE4IiBzdEV2dDp3aGVuPSIyMDIwLTA4LTEwVDEyOjU1OjQzKzAyOjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgKFdpbmRvd3MpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDwvcmRmOlNlcT4gPC94bXBNTTpIaXN0b3J5PiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Ps3gIaEAAAFRSURBVHja7dpBDoMgEAVQ6L3qCt3D/U/gHu5dV5jYGI3owEyVCfMXJhiG8QvVaPR8nJcB8I+AAiiAAvgdIAfNGxF9XtNvXdYp/fQkACnFVNYlvX7TJU3Hf3QBZPt0gGTzwQBq9PQTwOzRmwDMHr1qAFUIFkAVggVQhWABXCEYAL2IzAJQSsoNMDN+HMAMAgZQQlgA7SCVgHtCqAFmEVgAsSOsAlQhWgBViB5AEaIHQIIo2YSQIEo2ISSIr06CCKJkE8KFCAsQQoQFCCHCAnQR2QCeEKEALUQ4QA0RDlBDhAPkjehlKhzA+kj9tAs8IGrWRx4QTYMYGsQiPe1qvl9tAD6ivgJrfV+H+P41Ig6dg/MQMeicnIOIQefkHEQMOifnIGLQOTkHkUZnA+IqXYN4ZLIHcZWWgXhk62A/AAAAAAAAAAAAzMcNlrWuLcW3oLkAAAAASUVORK5CYII='
     );
 
     // Set texture repeating
@@ -220,8 +220,8 @@ export class PlayState implements IGameState {
   // Create a text label to place on the ground
   private createGroundLabel(): void {
     // Create a canvas element for text rendering
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
     const labelSize = 512; // Size of the canvas
 
     canvas.width = labelSize;
@@ -229,30 +229,30 @@ export class PlayState implements IGameState {
 
     if (context) {
       // Fill background with a semi-transparent color
-      context.fillStyle = "rgba(40, 40, 80, 0.7)";
+      context.fillStyle = 'rgba(40, 40, 80, 0.7)';
       context.fillRect(0, 0, labelSize, labelSize);
 
       // Add border
-      context.strokeStyle = "#ffffff";
+      context.strokeStyle = '#ffffff';
       context.lineWidth = 8;
       context.strokeRect(10, 10, labelSize - 20, labelSize - 20);
 
       // Configure text
-      context.fillStyle = "#ffffff";
-      context.textAlign = "center";
-      context.textBaseline = "middle";
+      context.fillStyle = '#ffffff';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
 
       // Add title text
-      context.font = "bold 60px Arial";
-      context.fillText("CUBE PHYSICS", labelSize / 2, labelSize / 3);
+      context.font = 'bold 60px Arial';
+      context.fillText('CUBE PHYSICS', labelSize / 2, labelSize / 3);
 
       // Add subtitle
-      context.font = "40px Arial";
-      context.fillText("Press F for wireframe", labelSize / 2, labelSize / 2);
+      context.font = '40px Arial';
+      context.fillText('Press F for wireframe', labelSize / 2, labelSize / 2);
 
       // Add date text
-      context.font = "30px Arial";
-      context.fillText("April 5, 2025", labelSize / 2, (2 * labelSize) / 3);
+      context.font = '30px Arial';
+      context.fillText('April 5, 2025', labelSize / 2, (2 * labelSize) / 3);
     }
 
     // Create a texture from the canvas
@@ -287,8 +287,7 @@ export class PlayState implements IGameState {
     const geometry = new THREE.BoxGeometry(size, size, size);
 
     // Select random material from predefined materials
-    const material =
-      this.cubeMaterials[Math.floor(Math.random() * this.cubeMaterials.length)];
+    const material = this.cubeMaterials[Math.floor(Math.random() * this.cubeMaterials.length)];
 
     // Create mesh
     const mesh = new THREE.Mesh(geometry, material);
@@ -350,8 +349,7 @@ export class PlayState implements IGameState {
     renderer.render(this.scene, this.camera);
     // Render orientation guide if it exists and game has started
     if (this.scene.userData.orientationGuide) {
-      const { scene: guideScene, camera: guideCamera } =
-        this.scene.userData.orientationGuide;
+      const { scene: guideScene, camera: guideCamera } = this.scene.userData.orientationGuide;
 
       // Update orientation guide to match main camera's rotation
       // This keeps the guide aligned with your current view direction
@@ -413,9 +411,8 @@ export class PlayState implements IGameState {
       const buffers = this.physicsWorld.world.debugRender();
 
       // Update the geometry with new vertex data
-      const positions =
-        this.physicsDebugRenderer.geometry.getAttribute("position");
-      const colors = this.physicsDebugRenderer.geometry.getAttribute("color");
+      const positions = this.physicsDebugRenderer.geometry.getAttribute('position');
+      const colors = this.physicsDebugRenderer.geometry.getAttribute('color');
 
       // Make sure buffer sizes match
       if (
@@ -434,11 +431,8 @@ export class PlayState implements IGameState {
         const newColors = new Float32Array(buffers.colors);
 
         const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute(
-          "position",
-          new THREE.BufferAttribute(vertices, 3)
-        );
-        geometry.setAttribute("color", new THREE.BufferAttribute(newColors, 4));
+        geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(newColors, 4));
 
         // Replace the old geometry
         this.physicsDebugRenderer.geometry.dispose();
@@ -451,27 +445,25 @@ export class PlayState implements IGameState {
 
   private toggleWireframeMode(scene: THREE.Scene, isWireframe: boolean) {
     // Create a notification about wireframe mode
-    const wireframeNotification = document.createElement("div");
-    wireframeNotification.style.position = "absolute";
-    wireframeNotification.style.top = "140px";
-    wireframeNotification.style.left = "10px";
-    wireframeNotification.style.color = "#00ff00";
-    wireframeNotification.style.fontFamily = "monospace";
-    wireframeNotification.style.fontSize = "16px";
-    wireframeNotification.style.padding = "5px";
-    wireframeNotification.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
-    wireframeNotification.style.border = "1px solid #00ff00";
-    wireframeNotification.style.transition = "opacity 0.5s ease-in-out";
-    wireframeNotification.style.opacity = "1";
-    wireframeNotification.textContent = isWireframe
-      ? "WIREFRAME MODE: ON"
-      : "WIREFRAME MODE: OFF";
+    const wireframeNotification = document.createElement('div');
+    wireframeNotification.style.position = 'absolute';
+    wireframeNotification.style.top = '140px';
+    wireframeNotification.style.left = '10px';
+    wireframeNotification.style.color = '#00ff00';
+    wireframeNotification.style.fontFamily = 'monospace';
+    wireframeNotification.style.fontSize = '16px';
+    wireframeNotification.style.padding = '5px';
+    wireframeNotification.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    wireframeNotification.style.border = '1px solid #00ff00';
+    wireframeNotification.style.transition = 'opacity 0.5s ease-in-out';
+    wireframeNotification.style.opacity = '1';
+    wireframeNotification.textContent = isWireframe ? 'WIREFRAME MODE: ON' : 'WIREFRAME MODE: OFF';
 
     document.body.appendChild(wireframeNotification);
 
     // Fade out after 2 seconds
     setTimeout(() => {
-      wireframeNotification.style.opacity = "0";
+      wireframeNotification.style.opacity = '0';
       // Remove from DOM after fade out
       setTimeout(() => {
         document.body.removeChild(wireframeNotification);
@@ -513,18 +505,18 @@ export class PlayState implements IGameState {
 
   onEnter(): void {
     // Add click event listener when entering the play state
-    document.addEventListener("click", this.clickListener);
+    document.addEventListener('click', this.clickListener);
 
     // Add keyboard event listener for wireframe toggle
-    document.addEventListener("keydown", this.keydownListener);
+    document.addEventListener('keydown', this.keydownListener);
   }
 
   onExit(): void {
     // Remove click event listener when exiting the play state
-    document.removeEventListener("click", this.clickListener);
+    document.removeEventListener('click', this.clickListener);
 
     // Remove keyboard event listener for wireframe toggle
-    document.removeEventListener("keydown", this.keydownListener);
+    document.removeEventListener('keydown', this.keydownListener);
   }
 
   // Creates a small orientation guide that stays in the corner of the screen
@@ -537,24 +529,20 @@ export class PlayState implements IGameState {
     guideScene.add(axesHelper);
 
     // Add labels
-    const createGuideLabel = (
-      text: string,
-      position: THREE.Vector3,
-      color: string
-    ) => {
-      const canvas = document.createElement("canvas");
+    const createGuideLabel = (text: string, position: THREE.Vector3, color: string) => {
+      const canvas = document.createElement('canvas');
       canvas.width = 64;
       canvas.height = 32;
 
-      const context = canvas.getContext("2d");
+      const context = canvas.getContext('2d');
       if (context) {
-        context.fillStyle = "rgba(0, 0, 0, 0.5)";
+        context.fillStyle = 'rgba(0, 0, 0, 0.5)';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        context.font = "bold 20px Arial";
+        context.font = 'bold 20px Arial';
         context.fillStyle = color;
-        context.textAlign = "center";
-        context.textBaseline = "middle";
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
         context.fillText(text, canvas.width / 2, canvas.height / 2);
       }
 
@@ -570,9 +558,9 @@ export class PlayState implements IGameState {
     };
 
     // Add axis labels for the guide
-    createGuideLabel("X", new THREE.Vector3(12, 0, 0), "#ff0000");
-    createGuideLabel("Y", new THREE.Vector3(0, 12, 0), "#00ff00");
-    createGuideLabel("Z", new THREE.Vector3(0, 0, 12), "#0000ff");
+    createGuideLabel('X', new THREE.Vector3(12, 0, 0), '#ff0000');
+    createGuideLabel('Y', new THREE.Vector3(0, 12, 0), '#00ff00');
+    createGuideLabel('Z', new THREE.Vector3(0, 0, 12), '#0000ff');
 
     // Create camera for the guide
     const guideCamera = new THREE.PerspectiveCamera(50, 1, 1, 1000);
@@ -610,8 +598,8 @@ export class PlayState implements IGameState {
 
       // Create buffer geometry and set attributes
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
-      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 4));
+      geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 4));
 
       // Create material with vertex colors
       const material = new THREE.LineBasicMaterial({
@@ -626,27 +614,27 @@ export class PlayState implements IGameState {
     }
 
     // Create a notification about debug physics mode
-    const debugNotification = document.createElement("div");
-    debugNotification.style.position = "absolute";
-    debugNotification.style.top = "170px";
-    debugNotification.style.left = "10px";
-    debugNotification.style.color = "#ff0000";
-    debugNotification.style.fontFamily = "monospace";
-    debugNotification.style.fontSize = "16px";
-    debugNotification.style.padding = "5px";
-    debugNotification.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
-    debugNotification.style.border = "1px solid #ff0000";
-    debugNotification.style.transition = "opacity 0.5s ease-in-out";
-    debugNotification.style.opacity = "1";
+    const debugNotification = document.createElement('div');
+    debugNotification.style.position = 'absolute';
+    debugNotification.style.top = '170px';
+    debugNotification.style.left = '10px';
+    debugNotification.style.color = '#ff0000';
+    debugNotification.style.fontFamily = 'monospace';
+    debugNotification.style.fontSize = '16px';
+    debugNotification.style.padding = '5px';
+    debugNotification.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    debugNotification.style.border = '1px solid #ff0000';
+    debugNotification.style.transition = 'opacity 0.5s ease-in-out';
+    debugNotification.style.opacity = '1';
     debugNotification.textContent = isDebugMode
-      ? "PHYSICS DEBUG MODE: ON"
-      : "PHYSICS DEBUG MODE: OFF";
+      ? 'PHYSICS DEBUG MODE: ON'
+      : 'PHYSICS DEBUG MODE: OFF';
 
     document.body.appendChild(debugNotification);
 
     // Fade out after 2 seconds
     setTimeout(() => {
-      debugNotification.style.opacity = "0";
+      debugNotification.style.opacity = '0';
       // Remove from DOM after fade out
       setTimeout(() => {
         document.body.removeChild(debugNotification);
