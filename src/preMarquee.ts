@@ -1,6 +1,6 @@
-import * as THREE from "three";
-import { IGameState } from "./gameStates";
-import { GameStateManager } from "./gameStateManager";
+import * as THREE from 'three';
+import { IGameState } from './gameStates';
+import { GameStateManager } from './gameStateManager';
 
 export class PreMarquee implements IGameState {
   private gameStateManager: GameStateManager;
@@ -24,26 +24,25 @@ export class PreMarquee implements IGameState {
     this.camera.lookAt(0, 1.5, 0);
 
     // Add a welcome message
-    const welcomeElement = document.createElement("div");
-    welcomeElement.id = "welcome";
-    welcomeElement.style.position = "absolute";
-    welcomeElement.style.top = "50%";
-    welcomeElement.style.left = "50%";
-    welcomeElement.style.transform = "translate(-50%, -50%)";
-    welcomeElement.style.color = "#00ff00";
-    welcomeElement.style.fontFamily = "monospace";
-    welcomeElement.style.fontSize = "24px";
-    welcomeElement.style.textAlign = "center";
-    welcomeElement.style.zIndex = "1000"; // Ensure it appears on top
-    welcomeElement.style.textShadow = "2px 2px 4px rgba(0, 0, 0, 0.7)"; // Add shadow for better visibility
-    welcomeElement.innerHTML =
-      "Welcome to BOILER!<br>Press space or click to enter the game";
+    const welcomeElement = document.createElement('div');
+    welcomeElement.id = 'welcome';
+    welcomeElement.style.position = 'absolute';
+    welcomeElement.style.top = '50%';
+    welcomeElement.style.left = '50%';
+    welcomeElement.style.transform = 'translate(-50%, -50%)';
+    welcomeElement.style.color = '#00ff00';
+    welcomeElement.style.fontFamily = 'monospace';
+    welcomeElement.style.fontSize = '24px';
+    welcomeElement.style.textAlign = 'center';
+    welcomeElement.style.zIndex = '1000'; // Ensure it appears on top
+    welcomeElement.style.textShadow = '2px 2px 4px rgba(0, 0, 0, 0.7)'; // Add shadow for better visibility
+    welcomeElement.innerHTML = 'Welcome to BOILER!<br>Press space or click to enter the game';
 
     document.body.appendChild(welcomeElement);
 
     // Create event listener for space key
     this.keydownListener = async (event: KeyboardEvent) => {
-      if (event.code === "Space") {
+      if (event.code === 'Space') {
         await this.startGame();
       }
     };
@@ -54,14 +53,14 @@ export class PreMarquee implements IGameState {
     };
 
     // Add both event listeners
-    document.addEventListener("keydown", this.keydownListener);
-    document.addEventListener("click", this.clickListener);
+    document.addEventListener('keydown', this.keydownListener);
+    document.addEventListener('click', this.clickListener);
   }
 
   private async startGame() {
     // Remove event listeners to prevent multiple triggers
-    document.removeEventListener("keydown", this.keydownListener);
-    document.removeEventListener("click", this.clickListener);
+    document.removeEventListener('keydown', this.keydownListener);
+    document.removeEventListener('click', this.clickListener);
 
     const soundManager = this.gameStateManager.initSoundManager();
     await soundManager.startAudioContext();
@@ -70,7 +69,7 @@ export class PreMarquee implements IGameState {
   }
 
   private startMarquee() {
-    const welcomeElement = document.getElementById("welcome");
+    const welcomeElement = document.getElementById('welcome');
     if (welcomeElement) {
       welcomeElement.remove();
     }
@@ -85,8 +84,8 @@ export class PreMarquee implements IGameState {
 
   onExit(): void {
     // Clean up by removing event listeners if they weren't removed already
-    document.removeEventListener("keydown", this.keydownListener);
-    document.removeEventListener("click", this.clickListener);
+    document.removeEventListener('keydown', this.keydownListener);
+    document.removeEventListener('click', this.clickListener);
     const soundManager = this.gameStateManager.initSoundManager();
     soundManager.stopMarqueeMusic();
   }

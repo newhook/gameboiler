@@ -1,17 +1,19 @@
-import * as THREE from "three";
-import { IGameState } from "./gameStates";
-import { MarqueeState } from "./marqueeState";
-import { PlayState } from "./playState";
-import { SoundManager } from "./soundManager";
-import { PreMarquee } from "./preMarquee";
+import * as THREE from 'three';
+import { IGameState } from './gameStates';
+import { MarqueeState } from './marqueeState';
+import { PlayState } from './playState';
+import { SoundManager } from './soundManager';
+import { PreMarquee } from './preMarquee';
 
 export class GameStateManager {
   private currentState: IGameState;
   public soundManager?: SoundManager;
+  public renderer: THREE.WebGLRenderer;
 
-  constructor() {
+  constructor(renderer: THREE.WebGLRenderer) {
     this.currentState = new PreMarquee(this); // Set PreMarquee as the initial state
     this.currentState.onEnter();
+    this.renderer = renderer;
   }
 
   initSoundManager(): SoundManager {
@@ -46,7 +48,7 @@ export class GameStateManager {
     this.currentState.update(deltaTime);
   }
 
-  render(renderer: THREE.WebGLRenderer): void {
-    this.currentState.render(renderer);
+  render(): void {
+    this.currentState.render(this.renderer);
   }
 }
