@@ -1,10 +1,10 @@
-import { PhysicsWorld as PhysicsWorldType, GameObject } from './types';
-import RAPIER from '@dimforge/rapier3d';
-import { GameConfig } from './config';
+import { GameObject } from "./types";
+import RAPIER from "@dimforge/rapier3d";
+import { GameConfig } from "./config";
 
-const FIXED_TIMESTEP = 1 / 30
+const FIXED_TIMESTEP = 1 / 30;
 
-export class PhysicsWorld implements PhysicsWorldType {
+export class PhysicsWorld {
   world: RAPIER.World;
   bodies: GameObject[];
   // Add collision event handler
@@ -25,7 +25,11 @@ export class PhysicsWorld implements PhysicsWorldType {
 
     // Create ground plane with configurable size
     const groundSize = config.worldSize / 2; // Divide by 2 since the size is total width
-    const groundColliderDesc = RAPIER.ColliderDesc.cuboid(groundSize, 0.1, groundSize).setTranslation(0, -0.1, 0)
+    const groundColliderDesc = RAPIER.ColliderDesc.cuboid(
+      groundSize,
+      0.1,
+      groundSize
+    ).setTranslation(0, -0.1, 0);
     this.world.createCollider(groundColliderDesc);
   }
 
@@ -35,35 +39,15 @@ export class PhysicsWorld implements PhysicsWorldType {
   }
 
   update(deltaTime: number): void {
-    this.accumulatedTime += deltaTime
+    this.accumulatedTime += deltaTime;
     // Step physics in fixed intervals
     while (this.accumulatedTime >= FIXED_TIMESTEP) {
       this.world.step(this.eventQueue);
       // save previous frame and next frame's transforms here
-      this.accumulatedTime -= FIXED_TIMESTEP
-
-      // Step the physics simulation
-      // this.world.step(this.eventQueue);
+      this.accumulatedTime -= FIXED_TIMESTEP;
 
       // Process collision events
       this.processCollisionEvents();
-
-      // // Check for invalid bodies before updating
-      // const validBodies = this.bodies.filter(body => {
-      //   try {
-      //     // This will throw an error if the body has been removed but is still in our array
-      //     body.body.translation();
-      //     return true;
-      //   } catch (e) {
-      //     return false;
-      //   }
-      // });
-
-      // // Replace our bodies array with only valid bodies
-      // if (validBodies.length !== this.bodies.length) {
-      //   this.bodies.length = 0;
-      //   this.bodies.push(...validBodies);
-      // }
 
       // Update all physics objects
       for (let i = 0; i < this.bodies.length; i++) {
@@ -74,11 +58,15 @@ export class PhysicsWorld implements PhysicsWorldType {
 
           // Update mesh position and rotation from physics body
           body.mesh.position.set(position.x, position.y, position.z);
-          body.mesh.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
+          body.mesh.quaternion.set(
+            rotation.x,
+            rotation.y,
+            rotation.z,
+            rotation.w
+          );
         }
       }
     }
-    // const alpha = this.accumulatedTime / FIXED_TIMESTEP
   }
 
   // Process collision events from RAPIER
@@ -103,13 +91,13 @@ export class PhysicsWorld implements PhysicsWorldType {
 
           // Trigger collision handlers if they exist
           if (gameObj1 && this.collisionHandlers.has(body1Handle)) {
-            const collider = this.collisionHandlers.get(body1Handle)
+            const collider = this.collisionHandlers.get(body1Handle);
             if (collider && gameObj2) {
               collider(gameObj2);
             }
           }
           if (gameObj2 && this.collisionHandlers.has(body2Handle)) {
-            let collider = this.collisionHandlers.get(body2Handle)
+            let collider = this.collisionHandlers.get(body2Handle);
             if (collider && gameObj1) {
               collider(gameObj1);
             }
@@ -133,7 +121,10 @@ export class PhysicsWorld implements PhysicsWorldType {
   }
 
   // Register a collision handler for a specific body
-  registerCollisionHandler(body: GameObject, handler: (other: GameObject) => void): void {
+  registerCollisionHandler(
+    body: GameObject,
+    handler: (other: GameObject) => void
+  ): void {
     this.collisionHandlers.set(body.body.handle, handler);
   }
 
@@ -158,15 +149,14 @@ export class PhysicsWorld implements PhysicsWorldType {
 }
 
 export function createObstacleBody(
-  size: { width: number, height: number, depth: number },
-  position: { x: number, y: number, z: number },
+  size: { width: number; height: number; depth: number },
+  position: { x: number; y: number; z: number },
   world: RAPIER.World,
   mass: number = 0
 ): RAPIER.RigidBody {
   // Create appropriate rigid body based on mass
-  const rigidBodyDesc = mass === 0
-    ? RAPIER.RigidBodyDesc.fixed()
-    : RAPIER.RigidBodyDesc.dynamic();
+  const rigidBodyDesc =
+    mass === 0 ? RAPIER.RigidBodyDesc.fixed() : RAPIER.RigidBodyDesc.dynamic();
 
   // Set position
   rigidBodyDesc.setTranslation(

@@ -1,2 +1,6 @@
-export interface GameConfig {}
-export const defaultConfig: GameConfig = {};
+export interface GameConfig {
+  worldSize: number;
+}
+export const defaultConfig: GameConfig = {
+  worldSize: 100,
+};

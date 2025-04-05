@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import RAPIER from "@dimforge/rapier3d";
 import { IGameState } from "./gameStates";
 import { GameStateManager } from "./gameStateManager";
 import { GameConfig, defaultConfig } from "./config";
@@ -20,6 +21,10 @@ export class PlayState implements IGameState {
   private cubeMaterials: THREE.Material[];
   // Click event listener
   private clickListener: (event: MouseEvent) => void;
+  // Keyboard event listener for wireframe toggle
+  private keydownListener: (event: KeyboardEvent) => void;
+  // Wireframe mode state
+  private isWireframeMode: boolean = false;
 
   constructor(gameStateManager: GameStateManager) {
     // Create scene
@@ -92,6 +97,14 @@ export class PlayState implements IGameState {
       this.dropCube();
     };
 
+    // Create keyboard event listener for wireframe toggle
+    this.keydownListener = (event: KeyboardEvent) => {
+      if (event.key === "f" || event.key === "F") {
+        this.isWireframeMode = !this.isWireframeMode;
+        this.toggleWireframeMode(this.scene, this.isWireframeMode);
+      }
+    };
+
     // Add camera mode indicator to the UI
     const cameraMode = document.createElement("div");
     cameraMode.id = "camera-mode";
@@ -144,7 +157,7 @@ export class PlayState implements IGameState {
 
     // Create a grid texture for the ground
     const gridTexture = new THREE.TextureLoader().load(
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF8WlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNi4wLWMwMDIgNzkuMTY0NDg4LCAyMDIwLzA3LzEwLTIyOjA2OjUzICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgKFdpbmRvd3MpIiB4bXA6Q3JlYXRlRGF0ZT0iMjAyMC0wOC0xMFQxMjo1MjozNyswMjowMCIgeG1wOk1vZGlmeURhdGU9IjIwMjAtMDgtMTBUMTI6NTU6NDMrMDI6MDAiIHhtcDpNZXRhZGF0YURhdGU9IjIwMjAtMDgtMTBUMTI6NTU6NDMrMDI6MDAiIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3Nob3A6Q29sb3JNb2RlPSIzIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjQyZjYxZjc1LTcwZWUtNGE0YS04ZTcwLWYwMzEyODBjZTRhOCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpjNzNmNjkyYi00MDdlLTQzOTAtODBlNC1jNzVlYmU0ZTRmZDYiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDpjNzNmNjkyYi00MDdlLTQzOTAtODBlNC1jNzVlYmU0ZTRmZDYiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmM3M2Y2OTJiLTQwN2UtNDM5MC04MGU0LWM3NWViZTRlNGZkNiIgc3RFdnQ6d2hlbj0iMjAyMC0wOC0xMFQxMjo1MjozNyswMjowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIChXaW5kb3dzKSIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6NDJmNjFmNzUtNzBlZS00YTRhLThlNzAtZjAzMTI4MGNlNGE4IiBzdEV2dDp3aGVuPSIyMDIwLTA4LTEwVDEyOjU1OjQzKzAyOjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgKFdpbmRvd3MpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDwvcmRmOlNlcT4gPC94bXBNTTpIaXN0b3J5PiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Ps3gIaEAAAFRSURBVHja7dpBDoMgEAVQ6L3qCt3D/U/gHu5dV5jYGI3owEyVCfMXJhiG8QvVaPR8nJcB8I+AAiiAAvgdIAfNGxF9XtNvXdYp/fQkACnFVNYlvX7TJU3Hf3QBZPt0gGTzwQBq9PQTwOzRmwDMHr1qAFUIFkAVggVQhWABXCEYAL2IzAJQSsoNMDN+HMAMAgZQQlgA7SCVgHtCqAFmEVgAsSOsAlQhWgBViB5AEaIHQIIo2YSQIEo2ISSIr06CCKJkE8KFCAsQQoQFCCHCAnQR2QCeEKEALUQ4QA0RDlBDhAPkjehlKhzA+kj9tAs8IGrWRx4QTYMYGsQiPe1qvl9tAD6ivgJrfV+H+P41Ig6dg/MQMeicnIOIQefkHEQMOifnIGLQOTkHkUZnA+IqXYN4ZLIHcZWWgXhk62A/AAAAAAAAAAAAzMcNlrWuLcW3oLkAAAAASUVORK5CYII="
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF8WlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczpxPSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNi4wLWMwMDIgNzkuMTY0NDg4LCAyMDIwLzA3LzEwLTIyOjA2OjUzICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczpxbXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczpxbXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgKFdpbmRvd3MpIiB4bXA6Q3JlYXRlRGF0ZT0iMjAyMC0wOC0xMFQxMjo1MjozNyswMjowMCIgeG1wOk1vZGlmeURhdGU9IjIwMjAtMDgtMTBUMTI6NTU6NDMrMDI6MDAiIHhtcDpNZXRhZGF0YURhdGU9IjIwMjAtMDgtMTBUMTI6NTU6NDMrMDI6MDAiIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3Nob3A6Q29sb3JNb2RlPSIzIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjQyZjYxZjc1LTcwZWUtNGE0YS04ZTcwLWYwMzEyODBjZTRhOCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpjNzNmNjkyYi00MDdlLTQzOTAtODBlNC1jNzVlYmU0ZTRmZDYiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmM3M2Y2OTJiLTQwN2UtNDM5MC04MGU0LWM3NWViZTRlNGZkNiIgc3RFdnQ6d2hlbj0iMjAyMC0wOC0xMFQxMjo1MjozNyswMjowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIChXaW5kb3dzKSIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6NDJmNjFmNzUtNzBlZS00YTRhLThlNzAtZjAzMTI4MGNlNGE4IiBzdEV2dDp3aGVuPSIyMDIwLTA4LTEwVDEyOjU1OjQzKzAyOjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgKFdpbmRvd3MpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDwvcmRmOlNlcT4gPC94bXBNTTpIaXN0b3J5PiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Ps3gIaEAAAFRSURBVHja7dpBDoMgEAVQ6L3qCt3D/U/gHu5dV5jYGI3owEyVCfMXJhiG8QvVaPR8nJcB8I+AAiiAAvgdIAfNGxF9XtNvXdYp/fQkACnFVNYlvX7TJU3Hf3QBZPt0gGTzwQBq9PQTwOzRmwDMHr1qAFUIFkAVggVQhWABXCEYAL2IzAJQSsoNMDN+HMAMAgZQQlgA7SCVgHtCqAFmEVgAsSOsAlQhWgBViB5AEaIHQIIo2YSQIEo2ISSIr06CCKJkE8KFCAsQQoQFCCHCAnQR2QCeEKEALUQ4QA0RDlBDhAPkjehlKhzA+kj9tAs8IGrWRx4QTYMYGsQiPe1qvl9tAD6ivgJrfV+H+P41Ig6dg/MQMeicnIOIQefkHEQMOifnIGLQOTkHkUZnA+IqXYN4ZLIHcZWWgXhk62A/AAAAAAAAAAAAzMcNlrWuLcW3oLkAAAAASUVORK5CYII="
     );
 
     // Set texture repeating
@@ -167,6 +180,102 @@ export class PlayState implements IGameState {
 
     // Add ground mesh to the scene
     this.scene.add(groundMesh);
+
+    // Create a custom ground physics collider that exactly matches our visual mesh
+    this.createGroundPhysics();
+
+    // Create a text label for the ground
+    this.createGroundLabel();
+  }
+
+  // Create a physics collider for the ground
+  private createGroundPhysics(): void {
+    // Use the same size as the visual ground mesh
+    const groundSize = this.config.worldSize / 2; // Half-size for RAPIER
+
+    // Create a static rigid body for the ground
+    const groundBodyDesc = RAPIER.RigidBodyDesc.fixed();
+    groundBodyDesc.setTranslation(0, 0, 0); // Same position as visual mesh
+
+    const groundBody = this.physicsWorld.world.createRigidBody(groundBodyDesc);
+
+    // Create collider for the ground - slightly thicker than visual for stability
+    const groundColliderDesc = RAPIER.ColliderDesc.cuboid(
+      groundSize, // width (half-size)
+      0.5, // height (half-size) - make it thick enough
+      groundSize // depth (half-size)
+    );
+
+    // Position collider to match the visual mesh (center of collider at y=-0.25)
+    groundColliderDesc.setTranslation(0, -0.25, 0);
+
+    // Set high friction for the ground
+    groundColliderDesc.setFriction(0.8);
+    groundColliderDesc.setRestitution(0.2); // Slight bounce
+
+    // Create the collider
+    this.physicsWorld.world.createCollider(groundColliderDesc, groundBody);
+  }
+
+  // Create a text label to place on the ground
+  private createGroundLabel(): void {
+    // Create a canvas element for text rendering
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    const labelSize = 512; // Size of the canvas
+
+    canvas.width = labelSize;
+    canvas.height = labelSize;
+
+    if (context) {
+      // Fill background with a semi-transparent color
+      context.fillStyle = "rgba(40, 40, 80, 0.7)";
+      context.fillRect(0, 0, labelSize, labelSize);
+
+      // Add border
+      context.strokeStyle = "#ffffff";
+      context.lineWidth = 8;
+      context.strokeRect(10, 10, labelSize - 20, labelSize - 20);
+
+      // Configure text
+      context.fillStyle = "#ffffff";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+
+      // Add title text
+      context.font = "bold 60px Arial";
+      context.fillText("CUBE PHYSICS", labelSize / 2, labelSize / 3);
+
+      // Add subtitle
+      context.font = "40px Arial";
+      context.fillText("Press F for wireframe", labelSize / 2, labelSize / 2);
+
+      // Add date text
+      context.font = "30px Arial";
+      context.fillText("April 5, 2025", labelSize / 2, (2 * labelSize) / 3);
+    }
+
+    // Create a texture from the canvas
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+
+    // Create material with the texture
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      side: THREE.DoubleSide,
+    });
+
+    // Create a plane geometry for the label
+    const labelGeometry = new THREE.PlaneGeometry(5, 5);
+
+    // Create the mesh and position it slightly above the ground
+    const labelMesh = new THREE.Mesh(labelGeometry, material);
+    labelMesh.rotation.x = -Math.PI / 2; // Make it horizontal
+    labelMesh.position.set(0, 0.01, 0); // Slightly above ground to prevent z-fighting
+
+    // Add the label to the scene
+    this.scene.add(labelMesh);
   }
 
   // Drop random cube with physics
@@ -186,7 +295,6 @@ export class PlayState implements IGameState {
     mesh.castShadow = true;
     mesh.receiveShadow = true;
 
-    // Random position with height between 5 and 15
     const posX = (Math.random() - 0.5) * this.config.worldSize * 0.8;
     const posY = Math.random() * 10 + 5;
     const posZ = (Math.random() - 0.5) * this.config.worldSize * 0.8;
@@ -198,6 +306,25 @@ export class PlayState implements IGameState {
       this.physicsWorld.world,
       1.0 // Mass of 1.0
     );
+
+    // Apply random rotational force/torque
+    const torqueStrength = 5.0; // Adjust this value to control rotation intensity
+
+    // Generate random torque around each axis
+    const torqueX = (Math.random() - 0.5) * torqueStrength;
+    const torqueY = (Math.random() - 0.5) * torqueStrength;
+    const torqueZ = (Math.random() - 0.5) * torqueStrength;
+
+    // Apply the torque to make the cube spin as it falls
+    body.applyTorqueImpulse({ x: torqueX, y: torqueY, z: torqueZ }, true);
+
+    // Also add a small random linear impulse for more varied movement
+    const impulseStrength = 1.0;
+    const impulseX = (Math.random() - 0.5) * impulseStrength;
+    const impulseZ = (Math.random() - 0.5) * impulseStrength;
+
+    // Apply only horizontal impulse to avoid counteracting gravity
+    body.applyImpulse({ x: impulseX, y: 0, z: impulseZ }, true);
 
     // Create game object with mesh and body
     const gameObject = {
@@ -387,11 +514,17 @@ export class PlayState implements IGameState {
   onEnter(): void {
     // Add click event listener when entering the play state
     document.addEventListener("click", this.clickListener);
+
+    // Add keyboard event listener for wireframe toggle
+    document.addEventListener("keydown", this.keydownListener);
   }
 
   onExit(): void {
     // Remove click event listener when exiting the play state
     document.removeEventListener("click", this.clickListener);
+
+    // Remove keyboard event listener for wireframe toggle
+    document.removeEventListener("keydown", this.keydownListener);
   }
 
   // Creates a small orientation guide that stays in the corner of the screen
