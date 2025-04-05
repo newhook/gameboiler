@@ -1,12 +1,12 @@
-import * as THREE from "three";
-import { GameStateManager } from "./gameStateManager";
+import * as THREE from 'three';
+import { GameStateManager } from './gameStateManager';
 
 // Function to initialize the app
 async function init() {
   // Create renderer
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
-    powerPreference: "high-performance",
+    powerPreference: 'high-performance',
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -17,18 +17,18 @@ async function init() {
   document.body.appendChild(renderer.domElement);
   const clock = new THREE.Clock();
 
-  const loadingElement = document.getElementById("loading");
+  const loadingElement = document.getElementById('loading');
   if (loadingElement) {
-    loadingElement.style.display = "none";
+    loadingElement.style.display = 'none';
   }
 
   // FPS counter variables
   let frameCount = 0;
   let lastTime = performance.now();
-  const fpsElement = document.getElementById("fps");
+  const fpsElement = document.getElementById('fps');
   if (fpsElement) {
-    fpsElement.style.display = "block";
-    fpsElement.style.color = "white";
+    fpsElement.style.display = 'block';
+    fpsElement.style.color = 'white';
   }
   let elapsedTime = 0;
 
@@ -68,7 +68,7 @@ async function init() {
   animate();
 
   // Handle window resize
-  window.addEventListener("resize", () => {
+  window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 }

@@ -1,6 +1,6 @@
-import * as THREE from "three";
-import { IGameState } from "./gameStates";
-import { GameStateManager } from "./gameStateManager";
+import * as THREE from 'three';
+import { IGameState } from './gameStates';
+import { GameStateManager } from './gameStateManager';
 
 interface MarqueeCamera {
   position: THREE.Vector3;
@@ -69,11 +69,11 @@ export class MarqueeState implements IGameState {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
     };
-    window.addEventListener("resize", this.resizeHandler);
+    window.addEventListener('resize', this.resizeHandler);
 
     // Create the keydown handler function that we'll need to remove later
     this.keydownHandler = (event: KeyboardEvent) => {
-      if (event.code === "Space") {
+      if (event.code === 'Space') {
         this.gameStart();
         this.gameStateManager.switchToPlay();
       }
@@ -90,30 +90,18 @@ export class MarqueeState implements IGameState {
     }
 
     const current = this.marqueeCameras[this.currentMarqueeIndex];
-    const next =
-      this.marqueeCameras[
-        (this.currentMarqueeIndex + 1) % this.marqueeCameras.length
-      ];
+    const next = this.marqueeCameras[(this.currentMarqueeIndex + 1) % this.marqueeCameras.length];
     const elapsedTime = currentTime - this.marqueeStartTime;
 
     if (elapsedTime >= current.duration) {
-      this.currentMarqueeIndex =
-        (this.currentMarqueeIndex + 1) % this.marqueeCameras.length;
+      this.currentMarqueeIndex = (this.currentMarqueeIndex + 1) % this.marqueeCameras.length;
       this.marqueeStartTime = currentTime;
       return;
     }
 
     const progress = elapsedTime / current.duration;
-    const position = new THREE.Vector3().lerpVectors(
-      current.position,
-      next.position,
-      progress
-    );
-    const lookAt = new THREE.Vector3().lerpVectors(
-      current.lookAt,
-      next.lookAt,
-      progress
-    );
+    const position = new THREE.Vector3().lerpVectors(current.position, next.position, progress);
+    const lookAt = new THREE.Vector3().lerpVectors(current.lookAt, next.lookAt, progress);
 
     this.camera.position.copy(position);
     this.camera.lookAt(lookAt);
@@ -124,43 +112,43 @@ export class MarqueeState implements IGameState {
     this.marqueeStartTime = 0;
 
     // Hide gameplay UI elements
-    const scoreElement = document.getElementById("score");
-    const fpsElement = document.getElementById("fps");
-    const instructionsElement = document.getElementById("instructions");
+    const scoreElement = document.getElementById('score');
+    const fpsElement = document.getElementById('fps');
+    const instructionsElement = document.getElementById('instructions');
 
-    if (scoreElement) scoreElement.style.opacity = "0";
-    if (fpsElement) fpsElement.style.opacity = "0";
+    if (scoreElement) scoreElement.style.opacity = '0';
+    if (fpsElement) fpsElement.style.opacity = '0';
     if (instructionsElement) {
-      instructionsElement.style.display = "none";
-      instructionsElement.style.opacity = "0";
+      instructionsElement.style.display = 'none';
+      instructionsElement.style.opacity = '0';
     }
 
     // Add event listener for space key
-    document.addEventListener("keydown", this.keydownHandler);
+    document.addEventListener('keydown', this.keydownHandler);
   }
 
   gameStart(): void {
-    this.titleScreen.style.opacity = "0";
+    this.titleScreen.style.opacity = '0';
     setTimeout(() => this.titleScreen.remove(), 1000);
 
     // Show the instructions element
-    const instructions = document.getElementById("instructions");
+    const instructions = document.getElementById('instructions');
     if (instructions) {
-      instructions.style.display = "block";
-      instructions.style.opacity = "1";
+      instructions.style.display = 'block';
+      instructions.style.opacity = '1';
     }
 
     // Show score and FPS
-    const score = document.getElementById("score");
-    const fps = document.getElementById("fps");
-    if (score) score.style.opacity = "1";
-    if (fps) fps.style.opacity = "1";
+    const score = document.getElementById('score');
+    const fps = document.getElementById('fps');
+    if (score) score.style.opacity = '1';
+    if (fps) fps.style.opacity = '1';
   }
 
   onExit(): void {
     // Remove event listeners to prevent memory leaks
-    document.removeEventListener("keydown", this.keydownHandler);
-    window.removeEventListener("resize", this.resizeHandler);
+    document.removeEventListener('keydown', this.keydownHandler);
+    window.removeEventListener('resize', this.resizeHandler);
 
     // Remove the title screen if it still exists
     if (this.titleScreen && this.titleScreen.parentNode) {
@@ -168,7 +156,7 @@ export class MarqueeState implements IGameState {
     }
 
     // Remove style element if it exists
-    const titleStyle = document.getElementById("title-screen-styles");
+    const titleStyle = document.getElementById('title-screen-styles');
     if (titleStyle) {
       titleStyle.remove();
     }
@@ -198,8 +186,8 @@ export class MarqueeState implements IGameState {
   }
 
   createTitleScreen(): void {
-    const titleScreen = document.createElement("div");
-    titleScreen.id = "title-screen";
+    const titleScreen = document.createElement('div');
+    titleScreen.id = 'title-screen';
     titleScreen.innerHTML = `
     <div class="title">BOILER</div>
     <div class="press-start">PRESS SPACE TO START</div>
@@ -207,7 +195,7 @@ export class MarqueeState implements IGameState {
     document.body.appendChild(titleScreen);
 
     // Add title screen styles
-    const style = document.createElement("style");
+    const style = document.createElement('style');
     style.textContent = `
     #title-screen {
       position: absolute;

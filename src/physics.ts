@@ -1,6 +1,6 @@
-import { GameObject } from "./types";
-import RAPIER from "@dimforge/rapier3d";
-import { GameConfig } from "./config";
+import { GameObject } from './types';
+import RAPIER from '@dimforge/rapier3d';
+import { GameConfig } from './config';
 
 const FIXED_TIMESTEP = 1 / 30;
 
@@ -58,12 +58,7 @@ export class PhysicsWorld {
 
           // Update mesh position and rotation from physics body
           body.mesh.position.set(position.x, position.y, position.z);
-          body.mesh.quaternion.set(
-            rotation.x,
-            rotation.y,
-            rotation.z,
-            rotation.w
-          );
+          body.mesh.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
         }
       }
     }
@@ -121,10 +116,7 @@ export class PhysicsWorld {
   }
 
   // Register a collision handler for a specific body
-  registerCollisionHandler(
-    body: GameObject,
-    handler: (other: GameObject) => void
-  ): void {
+  registerCollisionHandler(body: GameObject, handler: (other: GameObject) => void): void {
     this.collisionHandlers.set(body.body.handle, handler);
   }
 
@@ -155,8 +147,7 @@ export function createObstacleBody(
   mass: number = 0
 ): RAPIER.RigidBody {
   // Create appropriate rigid body based on mass
-  const rigidBodyDesc =
-    mass === 0 ? RAPIER.RigidBodyDesc.fixed() : RAPIER.RigidBodyDesc.dynamic();
+  const rigidBodyDesc = mass === 0 ? RAPIER.RigidBodyDesc.fixed() : RAPIER.RigidBodyDesc.dynamic();
 
   // Set position
   rigidBodyDesc.setTranslation(
@@ -168,11 +159,7 @@ export function createObstacleBody(
   const body = world.createRigidBody(rigidBodyDesc);
 
   // Create collider for this body
-  const colliderDesc = RAPIER.ColliderDesc.cuboid(
-    size.width / 2,
-    size.height / 2,
-    size.depth / 2
-  );
+  const colliderDesc = RAPIER.ColliderDesc.cuboid(size.width / 2, size.height / 2, size.depth / 2);
 
   if (mass > 0) {
     colliderDesc.setDensity(mass / (size.width * size.height * size.depth));

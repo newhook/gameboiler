@@ -1,9 +1,9 @@
-import * as THREE from "three";
-import { IGameState } from "./gameStates";
-import { MarqueeState } from "./marqueeState";
-import { PlayState } from "./playState";
-import { SoundManager } from "./soundManager";
-import { PreMarquee } from "./preMarquee";
+import * as THREE from 'three';
+import { IGameState } from './gameStates';
+import { MarqueeState } from './marqueeState';
+import { PlayState } from './playState';
+import { SoundManager } from './soundManager';
+import { PreMarquee } from './preMarquee';
 
 export class GameStateManager {
   private currentState: IGameState;
