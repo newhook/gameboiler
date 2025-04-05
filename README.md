@@ -1,14 +1,18 @@
-# Three.js TypeScript Boilerplate
+# 3D Physics Game with Three.js and Rapier
 
-A simple boilerplate project for getting started with Three.js and TypeScript using Vite.
+A 3D physics-based game built with Three.js, TypeScript, and Rapier physics engine using Vite as the build tool.
 
 ## Features
 
-- TypeScript support
+- 3D physics simulation with @dimforge/rapier3d
+- Game state management system
+- Interactive cubes with collision detection
+- Particle-based explosion effects
+- Sound management
+- Multiple game states (marquee, play)
+- TypeScript for type safety
 - Vite for fast development and bundling
-- Basic Three.js scene setup with a spinning cube
 - Responsive design with window resize handling
-- Simple animation example
 
 ## Getting Started
 
@@ -55,8 +59,16 @@ The built files will be in the `dist` directory.
 ## Project Structure
 
 - `src/main.ts` - Entry point for the application
-- `src/scene.ts` - Scene setup with camera, renderer, lights and a sample cube
+- `src/Cube.ts` - Implementation of interactive 3D cubes with physics and explosion effects
+- `src/physics.ts` - Physics world setup and interactions using Rapier
+- `src/gameStateManager.ts` - Game state management system
+- `src/gameStates.ts` - Base interface for different game states
+- `src/playState.ts` - Main gameplay state implementation
+- `src/marqueeState.ts` - Title screen/marquee state
+- `src/preMarquee.ts` - Pre-marquee state for initialization
+- `src/soundManager.ts` - Audio management system
 - `src/types.ts` - Type definitions
+- `src/config.ts` - Game configuration
 
 ## License
 
