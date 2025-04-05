@@ -5,6 +5,8 @@ import { GameStateManager } from './gameStateManager';
 import { GameConfig, defaultConfig } from './config';
 import { PhysicsWorld, createObstacleBody } from './physics';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { Cube } from './Cube';
+import { GameObject } from './types';
 
 export class PlayState implements IGameState {
   public gameStateManager: GameStateManager;
@@ -13,6 +15,8 @@ export class PlayState implements IGameState {
   private camera: THREE.PerspectiveCamera;
   private cameraControls: OrbitControls | null = null;
   config: GameConfig;
+
+  gameObjects: GameObject[] = [];
 
   private physicsDebugRenderer: THREE.LineSegments | null = null;
   private physicsCounterElement: HTMLElement | null;
@@ -278,67 +282,17 @@ export class PlayState implements IGameState {
     this.scene.add(labelMesh);
   }
 
-  // Drop random cube with physics
+  // Drop random cube with physics - now using the Cube class
   private dropCube(): void {
-    // Random size between 0.5 and 1.5
-    const size = Math.random() * 1.0 + 0.5;
-
-    // Create cube geometry
-    const geometry = new THREE.BoxGeometry(size, size, size);
-
-    // Select random material from predefined materials
-    const material = this.cubeMaterials[Math.floor(Math.random() * this.cubeMaterials.length)];
-
-    // Create mesh
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-
-    const posX = (Math.random() - 0.5) * this.config.worldSize * 0.8;
-    const posY = Math.random() * 10 + 5;
-    const posZ = (Math.random() - 0.5) * this.config.worldSize * 0.8;
-
-    // Create physics body for the cube
-    const body = createObstacleBody(
-      { width: size, height: size, depth: size },
-      { x: posX, y: posY, z: posZ },
-      this.physicsWorld.world,
-      1.0 // Mass of 1.0
-    );
-
-    // Apply random rotational force/torque
-    const torqueStrength = 5.0; // Adjust this value to control rotation intensity
-
-    // Generate random torque around each axis
-    const torqueX = (Math.random() - 0.5) * torqueStrength;
-    const torqueY = (Math.random() - 0.5) * torqueStrength;
-    const torqueZ = (Math.random() - 0.5) * torqueStrength;
-
-    // Apply the torque to make the cube spin as it falls
-    body.applyTorqueImpulse({ x: torqueX, y: torqueY, z: torqueZ }, true);
-
-    // Also add a small random linear impulse for more varied movement
-    const impulseStrength = 1.0;
-    const impulseX = (Math.random() - 0.5) * impulseStrength;
-    const impulseZ = (Math.random() - 0.5) * impulseStrength;
-
-    // Apply only horizontal impulse to avoid counteracting gravity
-    body.applyImpulse({ x: impulseX, y: 0, z: impulseZ }, true);
-
-    // Create game object with mesh and body
-    const gameObject = {
-      mesh,
-      body,
-      mass: 1.0,
-      size: { width: size, height: size, depth: size },
-    };
-
+    // Create a random cube using the factory method
+    const cube = Cube.createRandom(this.physicsWorld, this.cubeMaterials, this.config.worldSize);
+    this.gameObjects.push(cube);
     // Add to scene and physics world
-    this.scene.add(mesh);
-    this.physicsWorld.addBody(gameObject);
+    this.scene.add(cube.mesh);
+    this.physicsWorld.addBody(cube);
   }
 
-  // Drop initial set of cubes
+  // Drop initial set of cubes - now using the new dropCube method
   private dropInitialCubes(count: number): void {
     for (let i = 0; i < count; i++) {
       this.dropCube();
@@ -399,6 +353,12 @@ export class PlayState implements IGameState {
     this.updatePhysicsCounter();
 
     this.physicsWorld.update(deltaTime);
+
+    this.gameObjects.forEach((obj) => {
+      if (obj.update) {
+        obj.update(deltaTime);
+      }
+    });
 
     // Update camera controls if they exist
     if (this.cameraControls) {
