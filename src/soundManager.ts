@@ -1,7 +1,5 @@
 export class SoundManager {
-  constructor() {
-    console.log("sound manager");
-  }
+  constructor() {}
 
   async startAudioContext() {}
   async loadMarqueeMusic() {}

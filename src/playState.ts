@@ -2,17 +2,24 @@ import * as THREE from "three";
 import { IGameState } from "./gameStates";
 import { GameStateManager } from "./gameStateManager";
 import { GameConfig, defaultConfig } from "./config";
-import { PhysicsWorld } from "./physics";
+import { PhysicsWorld, createObstacleBody } from "./physics";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 export class PlayState implements IGameState {
   public gameStateManager: GameStateManager;
   scene: THREE.Scene;
   physicsWorld: PhysicsWorld;
   private camera: THREE.PerspectiveCamera;
+  private cameraControls: OrbitControls | null = null;
   config: GameConfig;
 
   private physicsDebugRenderer: THREE.LineSegments | null = null;
   private physicsCounterElement: HTMLElement | null;
+
+  // Materials for cubes
+  private cubeMaterials: THREE.Material[];
+  // Click event listener
+  private clickListener: (event: MouseEvent) => void;
 
   constructor(gameStateManager: GameStateManager) {
     // Create scene
@@ -30,14 +37,26 @@ export class PlayState implements IGameState {
 
     // Set up camera with increased far plane and narrower FOV for first person view
     this.camera = new THREE.PerspectiveCamera(
-      60, // Reduced FOV for more realistic first person view
+      60, // FOV
       window.innerWidth / window.innerHeight,
       0.1,
       2000
     );
-    // Initial position will be adjusted by updateCamera, these are just starting values
-    this.camera.position.set(0, 1.5, 0);
-    this.camera.lookAt(0, 1.5, 10);
+    // Position the camera to better view the falling cubes
+    this.camera.position.set(15, 15, 15);
+    this.camera.lookAt(0, 0, 0);
+
+    // Add camera controls to allow user to rotate and zoom
+    const renderer = this.gameStateManager.renderer;
+    if (renderer) {
+      this.cameraControls = new OrbitControls(this.camera, renderer.domElement);
+      this.cameraControls.enableDamping = true;
+      this.cameraControls.dampingFactor = 0.05;
+      this.cameraControls.screenSpacePanning = false;
+      this.cameraControls.minDistance = 5;
+      this.cameraControls.maxDistance = 100;
+      this.cameraControls.maxPolarAngle = Math.PI / 2 - 0.1; // Prevent going below ground
+    }
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0x6b8cff, 4.0); // Increased from 2.0, with a blue tint
@@ -57,6 +76,21 @@ export class PlayState implements IGameState {
     const fillLight = new THREE.DirectionalLight(0xffffee, 1.0);
     fillLight.position.set(-100, 50, -50);
     this.scene.add(fillLight);
+
+    // Create pre-defined materials for cubes
+    this.cubeMaterials = [
+      new THREE.MeshStandardMaterial({ color: 0xff0000 }), // Red
+      new THREE.MeshStandardMaterial({ color: 0x00ff00 }), // Green
+      new THREE.MeshStandardMaterial({ color: 0x0000ff }), // Blue
+      new THREE.MeshStandardMaterial({ color: 0xffff00 }), // Yellow
+      new THREE.MeshStandardMaterial({ color: 0xff00ff }), // Magenta
+      new THREE.MeshStandardMaterial({ color: 0x00ffff }), // Cyan
+    ];
+
+    // Create click event listener
+    this.clickListener = () => {
+      this.dropCube();
+    };
 
     // Add camera mode indicator to the UI
     const cameraMode = document.createElement("div");
@@ -91,6 +125,98 @@ export class PlayState implements IGameState {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
     });
+
+    // Add surface mesh
+    this.createSurfaceMesh();
+
+    // Drop initial cubes
+    this.dropInitialCubes(10);
+  }
+
+  // Create a surface-level mesh to represent the ground
+  private createSurfaceMesh(): void {
+    // Create a ground plane with texture
+    const groundSize = this.config.worldSize;
+    const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
+
+    // Rotate plane to be horizontal
+    groundGeometry.rotateX(-Math.PI / 2);
+
+    // Create a grid texture for the ground
+    const gridTexture = new THREE.TextureLoader().load(
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF8WlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNi4wLWMwMDIgNzkuMTY0NDg4LCAyMDIwLzA3LzEwLTIyOjA2OjUzICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgKFdpbmRvd3MpIiB4bXA6Q3JlYXRlRGF0ZT0iMjAyMC0wOC0xMFQxMjo1MjozNyswMjowMCIgeG1wOk1vZGlmeURhdGU9IjIwMjAtMDgtMTBUMTI6NTU6NDMrMDI6MDAiIHhtcDpNZXRhZGF0YURhdGU9IjIwMjAtMDgtMTBUMTI6NTU6NDMrMDI6MDAiIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3Nob3A6Q29sb3JNb2RlPSIzIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjQyZjYxZjc1LTcwZWUtNGE0YS04ZTcwLWYwMzEyODBjZTRhOCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpjNzNmNjkyYi00MDdlLTQzOTAtODBlNC1jNzVlYmU0ZTRmZDYiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDpjNzNmNjkyYi00MDdlLTQzOTAtODBlNC1jNzVlYmU0ZTRmZDYiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmM3M2Y2OTJiLTQwN2UtNDM5MC04MGU0LWM3NWViZTRlNGZkNiIgc3RFdnQ6d2hlbj0iMjAyMC0wOC0xMFQxMjo1MjozNyswMjowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIChXaW5kb3dzKSIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6NDJmNjFmNzUtNzBlZS00YTRhLThlNzAtZjAzMTI4MGNlNGE4IiBzdEV2dDp3aGVuPSIyMDIwLTA4LTEwVDEyOjU1OjQzKzAyOjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgKFdpbmRvd3MpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDwvcmRmOlNlcT4gPC94bXBNTTpIaXN0b3J5PiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Ps3gIaEAAAFRSURBVHja7dpBDoMgEAVQ6L3qCt3D/U/gHu5dV5jYGI3owEyVCfMXJhiG8QvVaPR8nJcB8I+AAiiAAvgdIAfNGxF9XtNvXdYp/fQkACnFVNYlvX7TJU3Hf3QBZPt0gGTzwQBq9PQTwOzRmwDMHr1qAFUIFkAVggVQhWABXCEYAL2IzAJQSsoNMDN+HMAMAgZQQlgA7SCVgHtCqAFmEVgAsSOsAlQhWgBViB5AEaIHQIIo2YSQIEo2ISSIr06CCKJkE8KFCAsQQoQFCCHCAnQR2QCeEKEALUQ4QA0RDlBDhAPkjehlKhzA+kj9tAs8IGrWRx4QTYMYGsQiPe1qvl9tAD6ivgJrfV+H+P41Ig6dg/MQMeicnIOIQefkHEQMOifnIGLQOTkHkUZnA+IqXYN4ZLIHcZWWgXhk62A/AAAAAAAAAAAAzMcNlrWuLcW3oLkAAAAASUVORK5CYII="
+    );
+
+    // Set texture repeating
+    gridTexture.wrapS = THREE.RepeatWrapping;
+    gridTexture.wrapT = THREE.RepeatWrapping;
+    gridTexture.repeat.set(groundSize / 10, groundSize / 10);
+
+    // Create ground material with grid texture
+    const groundMaterial = new THREE.MeshStandardMaterial({
+      map: gridTexture,
+      color: 0x999999,
+      roughness: 0.8,
+      metalness: 0.2,
+    });
+
+    // Create the ground mesh
+    const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+    groundMesh.receiveShadow = true;
+    groundMesh.position.y = 0;
+
+    // Add ground mesh to the scene
+    this.scene.add(groundMesh);
+  }
+
+  // Drop random cube with physics
+  private dropCube(): void {
+    // Random size between 0.5 and 1.5
+    const size = Math.random() * 1.0 + 0.5;
+
+    // Create cube geometry
+    const geometry = new THREE.BoxGeometry(size, size, size);
+
+    // Select random material from predefined materials
+    const material =
+      this.cubeMaterials[Math.floor(Math.random() * this.cubeMaterials.length)];
+
+    // Create mesh
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+
+    // Random position with height between 5 and 15
+    const posX = (Math.random() - 0.5) * this.config.worldSize * 0.8;
+    const posY = Math.random() * 10 + 5;
+    const posZ = (Math.random() - 0.5) * this.config.worldSize * 0.8;
+
+    // Create physics body for the cube
+    const body = createObstacleBody(
+      { width: size, height: size, depth: size },
+      { x: posX, y: posY, z: posZ },
+      this.physicsWorld.world,
+      1.0 // Mass of 1.0
+    );
+
+    // Create game object with mesh and body
+    const gameObject = {
+      mesh,
+      body,
+      mass: 1.0,
+      size: { width: size, height: size, depth: size },
+    };
+
+    // Add to scene and physics world
+    this.scene.add(mesh);
+    this.physicsWorld.addBody(gameObject);
+  }
+
+  // Drop initial set of cubes
+  private dropInitialCubes(count: number): void {
+    for (let i = 0; i < count; i++) {
+      this.dropCube();
+    }
   }
 
   render(renderer: THREE.WebGLRenderer): void {
@@ -148,6 +274,11 @@ export class PlayState implements IGameState {
     this.updatePhysicsCounter();
 
     this.physicsWorld.update(deltaTime);
+
+    // Update camera controls if they exist
+    if (this.cameraControls) {
+      this.cameraControls.update();
+    }
 
     // Update physics debug rendering if enabled
     if (this.physicsDebugRenderer) {
@@ -249,30 +380,19 @@ export class PlayState implements IGameState {
 
   // Update the camera to follow the player in first person view
   private updateCamera() {
-    // // Get the turret container safely using the getter method
-    // const turretContainer = this.player.getTurretContainer();
-    // if (!turretContainer) return;
-    // // Position camera under the cannon
-    // const cameraOffset = new THREE.Vector3(0, 1.25, 0); // Slightly below turret height
-    // // Apply tank's position and rotation
-    // this.camera.position.copy(this.player.mesh.position).add(cameraOffset);
-    // // Create forward direction based on tank and turret rotation
-    // const forward = new THREE.Vector3(0, 0, 1);
-    // const combinedRotation = new THREE.Quaternion().multiplyQuaternions(
-    //   this.player.mesh.quaternion,
-    //   turretContainer.quaternion
-    // );
-    // forward.applyQuaternion(combinedRotation);
-    // // Look in the direction the turret is facing
-    // const lookAtPoint = this.camera.position
-    //   .clone()
-    //   .add(forward.multiplyScalar(10));
-    // this.camera.lookAt(lookAtPoint);
+    // This method is currently empty as we're using OrbitControls instead
+    // of programmatically moving the camera
   }
 
-  onEnter(): void {}
+  onEnter(): void {
+    // Add click event listener when entering the play state
+    document.addEventListener("click", this.clickListener);
+  }
 
-  onExit(): void {}
+  onExit(): void {
+    // Remove click event listener when exiting the play state
+    document.removeEventListener("click", this.clickListener);
+  }
 
   // Creates a small orientation guide that stays in the corner of the screen
   createOrientationGuide(scene: THREE.Scene): void {

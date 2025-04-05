@@ -26,42 +26,42 @@ async function init() {
   let frameCount = 0;
   let lastTime = performance.now();
   const fpsElement = document.getElementById("fps");
+  if (fpsElement) {
+    fpsElement.style.display = "block";
+    fpsElement.style.color = "white";
+  }
+  let elapsedTime = 0;
 
   // Update FPS counter
-  function updateFPS() {
+  function updateFPS(deltaTime: number) {
     frameCount++;
-
-    const currentTime = performance.now();
-    const elapsedTime = currentTime - lastTime;
-
+    elapsedTime += deltaTime;
     // Update FPS display once per second
-    if (elapsedTime >= 1000) {
-      const fps = Math.round((frameCount * 1000) / elapsedTime);
+    if (elapsedTime >= 1) {
+      const fps = Math.round(frameCount / elapsedTime);
       if (fpsElement) {
         fpsElement.textContent = `FPS: ${fps}`;
       }
-
       // Reset values
       frameCount = 0;
-      lastTime = currentTime;
+      elapsedTime = 0;
     }
   }
   // Initialize game state manager
-  let gameStateManager = new GameStateManager();
+  let gameStateManager = new GameStateManager(renderer);
 
   // Set up animation loop
   function animate() {
     requestAnimationFrame(animate);
 
-    // Update FPS counter
-    updateFPS();
-
     // Get elapsed time since last frame
     const deltaTime = clock.getDelta();
+    // Update FPS counter
+    updateFPS(deltaTime);
 
     // Update game state
     gameStateManager.update(deltaTime);
-    gameStateManager.render(renderer);
+    gameStateManager.render();
   }
 
   // Start the animation loop
