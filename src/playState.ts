@@ -286,6 +286,15 @@ export class PlayState implements IGameState {
   private dropCube(): void {
     // Create a random cube using the factory method
     const cube = Cube.createRandom(this.physicsWorld, this.cubeMaterials, this.config.worldSize);
+
+    // Set scene and physics world references for explosion management
+    cube.setSceneAndPhysicsWorld(this.scene, this.physicsWorld);
+
+    // Register collision handler for this cube
+    this.physicsWorld.registerCollisionHandler(cube, (other: GameObject) => {
+      cube.handleCollision(other);
+    });
+
     this.gameObjects.push(cube);
     // Add to scene and physics world
     this.scene.add(cube.mesh);
@@ -354,10 +363,19 @@ export class PlayState implements IGameState {
 
     this.physicsWorld.update(deltaTime);
 
+    // Update all game objects (including cube explosions)
     this.gameObjects.forEach((obj) => {
       if (obj.update) {
         obj.update(deltaTime);
       }
+    });
+
+    // Clean up any exploded cubes from game objects list
+    this.gameObjects = this.gameObjects.filter((obj) => {
+      if (obj instanceof Cube) {
+        return !obj.exploding || (obj.exploding && obj.mesh.parent !== null);
+      }
+      return true;
     });
 
     // Update camera controls if they exist

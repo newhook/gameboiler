@@ -19,7 +19,8 @@ export class PhysicsWorld {
     this.world = new RAPIER.World(gravity);
     this.world.timestep = FIXED_TIMESTEP;
     this.bodies = [];
-    // Initialize collision handling
+
+    // Initialize collision handling with explicit enablement of contact collection
     this.eventQueue = new RAPIER.EventQueue(true);
     this.collisionHandlers = new Map();
 
@@ -30,6 +31,11 @@ export class PhysicsWorld {
       0.1,
       groundSize
     ).setTranslation(0, -0.1, 0);
+
+    // Make the ground slightly bouncy
+    groundColliderDesc.setRestitution(0.3);
+    groundColliderDesc.setFriction(0.8);
+
     this.world.createCollider(groundColliderDesc);
   }
 
@@ -66,8 +72,6 @@ export class PhysicsWorld {
 
   // Process collision events from RAPIER
   private processCollisionEvents(): void {
-    // this.world.contactPair(this.eventQueue);
-
     this.eventQueue.drainCollisionEvents((handle1, handle2, started) => {
       if (started) {
         const collider1 = this.world.getCollider(handle1);
@@ -86,15 +90,15 @@ export class PhysicsWorld {
 
           // Trigger collision handlers if they exist
           if (gameObj1 && this.collisionHandlers.has(body1Handle)) {
-            const collider = this.collisionHandlers.get(body1Handle);
-            if (collider && gameObj2) {
-              collider(gameObj2);
+            const handler = this.collisionHandlers.get(body1Handle);
+            if (handler && gameObj2) {
+              handler(gameObj2);
             }
           }
           if (gameObj2 && this.collisionHandlers.has(body2Handle)) {
-            let collider = this.collisionHandlers.get(body2Handle);
-            if (collider && gameObj1) {
-              collider(gameObj1);
+            const handler = this.collisionHandlers.get(body2Handle);
+            if (handler && gameObj1) {
+              handler(gameObj1);
             }
           }
         }
@@ -150,11 +154,7 @@ export function createObstacleBody(
   const rigidBodyDesc = mass === 0 ? RAPIER.RigidBodyDesc.fixed() : RAPIER.RigidBodyDesc.dynamic();
 
   // Set position
-  rigidBodyDesc.setTranslation(
-    position.x,
-    position.y, // Don't add half height - this is now handled correctly in gameObjects.ts
-    position.z
-  );
+  rigidBodyDesc.setTranslation(position.x, position.y, position.z);
 
   const body = world.createRigidBody(rigidBodyDesc);
 
@@ -165,13 +165,17 @@ export function createObstacleBody(
     colliderDesc.setDensity(mass / (size.width * size.height * size.depth));
   }
 
-  // Increase friction and make sure there's no bounce for obstacles
-  colliderDesc.setFriction(1.0);
-  colliderDesc.setRestitution(0.0);
-  colliderDesc.setActiveCollisionTypes(RAPIER.ActiveCollisionTypes.DEFAULT);
+  // Increase friction and add bounce for more dynamic collisions
+  colliderDesc.setFriction(0.8);
+  colliderDesc.setRestitution(0.4); // Increased bounciness
 
-  // Add some contact force events for debugging if needed
-  colliderDesc.setActiveEvents(RAPIER.ActiveEvents.CONTACT_FORCE_EVENTS);
+  // Ensure all collision types are active
+  colliderDesc.setActiveCollisionTypes(RAPIER.ActiveCollisionTypes.ALL);
+
+  // CRITICAL: Enable all events to ensure we get collision notifications
+  colliderDesc.setActiveEvents(
+    RAPIER.ActiveEvents.COLLISION_EVENTS | RAPIER.ActiveEvents.CONTACT_FORCE_EVENTS
+  );
 
   // Attach collider to body
   world.createCollider(colliderDesc, body);
